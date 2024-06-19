@@ -496,7 +496,7 @@ def pumas(state = None, cb = False, year = None, cache = False, subset_by = None
             print("Retrieving PUMAs by state and combining the result")
             all_states = [code for code in fips['state_code'].unique().tolist() if code <= "56"]
 
-            all_pumas = pd.concat([pumas(x, year = year, cache = cache) for x in all_states])
+            all_pumas = pd.concat([pumas(x, year = year, cache = cache, cb = cb) for x in all_states])
 
             return all_pumas
     else:
@@ -509,16 +509,20 @@ def pumas(state = None, cb = False, year = None, cache = False, subset_by = None
         suf = "10"
     
     if cb:
-        if year in [2020, 2021]:
-            raise ValueError("Cartographic boundary PUMAs are not yet available for years after 2019. Use the argument `year = 2019` instead to request your data.")    
+        if year in [2021, 2022]:
+            url = f"https://www2.census.gov/geo/tiger/TIGER{year}/PUMA/tl_{year}_{state}_puma{suf}.zip"
         else:
             if year == 2013:
                 url = f"https://www2.census.gov/geo/tiger/GENZ{year}/cb_{year}_{state}_puma{suf}_500k.zip"
+            elif year == 2020:
+                # the cartographic representations for 2020 are available, but are labelled 20
+                url = f"https://www2.census.gov/geo/tiger/GENZ{year}/shp/cb_{year}_{state}_puma20_500k.zip"
             else:
                 url = f"https://www2.census.gov/geo/tiger/GENZ{year}/shp/cb_{year}_{state}_puma{suf}_500k.zip"
     else:
         url = f"https://www2.census.gov/geo/tiger/TIGER{year}/PUMA/tl_{year}_{state}_puma{suf}.zip"
 
+    print(f"trying: {url}")
     pm = _load_tiger(url, cache = cache, subset_by = subset_by)
 
     return pm
